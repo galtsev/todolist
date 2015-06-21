@@ -1,0 +1,53 @@
+        body {
+            font-family: sans-serif;
+        }
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .task {
+            margin-top: 24px;
+        }
+        .attrs {
+            font-size: x-small;
+            padding: 2px;
+        }
+        .description {
+            padding: 1px 12px;
+            background-color: #EEEEEE;
+            font-family: "Droid Sans mono", monospace;
+            font-size: small;
+        }
+        .top {
+            position: fixed;
+            top: 0;
+            width: 800px;
+            margin: 0 auto;
+        }
+        .float_left {
+            float: left;
+        }
+        .float_right {
+            float: right;
+        }
+        .clear_both {
+            clear: both;
+        }
+        .g-modal-container {
+            position: fixed;
+            left: 50%;
+            top: 10px;
+            transform: translate(-50%, 0);
+            background-color: #EEEEEE;
+            border: solid 1px;
+            z-index: 10;
+            display: none;
+            padding: 5px;
+        }
+        .g-modal {
+            margin auto;
+            background-color: #EEEEEE;
+            border: solid 1px;
+            z-index: 10;
+            max-width: 400px;
+        }

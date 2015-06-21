@@ -1,0 +1,24 @@
+{
+  "name": "todolist",
+  "version": "0.2.0",
+  "description": "private project to learn node, react, couchdb and so",
+  "repository": {
+    "type": "git",
+    "url": "galtsev/nosuchrepo"
+  },
+  "dependencies": {
+    "bootstrap": "^3.3.4",
+    "jquery": "^2.1.4",
+    "pouchdb": "^3.6.0",
+    "react": "^0.13.3",
+    "react-bootstrap": "^0.21.2",
+    "strftime": "^0.9.2"
+  },
+  "devDependencies": {
+    "del": "^1.1.1",
+    "gulp": "^3.8.11",
+    "gulp-browserify": "^0.5.1",
+    "gulp-jsxtransform": "^0.1.1",
+    "merge-stream": "^0.1.7"
+  }
+}

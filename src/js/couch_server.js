@@ -10,6 +10,15 @@ function srv2local(todo) {
     return todo;
 }
 
+function findAll(regEx, s) {
+    var res = [];
+    regEx.lastIndex=0;
+    while (m=regEx.exec(s)) {
+        res.push(m[0]);
+    }
+    return res;
+}
+
 const date_format = "%Y-%m-%d %H:%M:%S.%L";
 
 Server.prototype = {
@@ -31,9 +40,15 @@ Server.prototype = {
         var startkey = [{}];
         var endkey = []
         if (options.status!='all') {
-            view = 'main/by_status_date_updated';
-            startkey = [options.status, {}];
-            endkey = [options.status]
+            if (options.search_value) {
+                view = 'main/by_tag_status_date_updated';
+                startkey = [options.search_value, options.status, {}];
+                endkey = [options.search_value, options.status];
+            } else {
+                view = 'main/by_status_date_updated';
+                startkey = [options.status, {}];
+                endkey = [options.status]
+            }
         }
         return this.backend.query(view, {descending: true, startkey:startkey,include_docs:true,reduce:false,endkey:endkey})
             .then(function(data){return data.rows.map(function(row){return srv2local(row.doc);});});
@@ -41,6 +56,7 @@ Server.prototype = {
     add_todo: function(form_data) {
         var now = new Date();
         form_data.date_created = form_data.date_updated = strftime(date_format, now);
+        form_data.tags = findAll(/#\w+(?:\.\w+)*/g, form_data.description);
         return this.backend.post(form_data)
             .then(function(data){return this.backend.get(data.id);}.bind(this))
             .then(function(todo){return srv2local(todo)});

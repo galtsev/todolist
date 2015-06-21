@@ -77,7 +77,7 @@ var Dialog1 = React.createClass({
 var Toolbar = React.createClass({
     mixins: [StorageMixin],
     newSelect: function(status) {
-        this.emit('view_status_changed', {status: status, search_value: this.refs.search_value.getValue()});
+        this.emit('view_status_changed', {status: status, search_value: this.refs.search_value.getValue().trim()});
     },
     showDialog: function(event) {
         document.getElementById('d1').style.display='block';

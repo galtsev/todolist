@@ -22,6 +22,23 @@ function findAll(regEx, s) {
 const date_format = "%Y-%m-%d %H:%M:%S.%L";
 
 Server.prototype = {
+    create_views: function() {
+        var main = {
+            _id: '_design/main',
+            views: {
+                all_by_date_updated: {
+                    map: function(doc){emit(doc.date_updated, null);}.toString()
+                },
+                by_status_date_updated: {
+                    map: function(doc){emit([doc.status,doc.date_updated],null);}.toString()
+                },
+                by_tag_status_date_updated: {
+                    map: function(doc){doc.tags.forEach(function(tag){emit([tag,doc.status,doc.date_updated],null);});}.toString()
+                }
+            }
+        };
+        this.backend.put(main).then(function(){console.log('ok')}).catch(function(err){console.error(err);});
+    },
     set_status: function(todo, status) {
         //return this.post_promise('set-status', {id: id, status: status});
         var obj = {
@@ -37,8 +54,8 @@ Server.prototype = {
     },
     get_list: function(options) {
         var view = 'main/all_by_date_updated';
-        var startkey = [{}];
-        var endkey = []
+        var startkey = {};
+        var endkey = '';
         if (options.status!='all') {
             if (options.search_value) {
                 view = 'main/by_tag_status_date_updated';
@@ -68,4 +85,5 @@ Server.prototype = {
 
 }
 
-exports.srv = new Server('http://admin:admin@localhost:5984/todo');
+//exports.srv = new Server('http://admin:admin@localhost:5984/todo');
+exports.srv = new Server('todo_local');

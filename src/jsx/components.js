@@ -82,6 +82,9 @@ var Toolbar = React.createClass({
     showDialog: function(event) {
         document.getElementById('d1').style.display='block';
     },
+    createViews: function() {
+        this.emit('create_views');
+    },
     render: function() {
         var view_options = ['all', 'backlog', 'in process', 'hold', 'closed'];
         return (
@@ -92,6 +95,7 @@ var Toolbar = React.createClass({
                     {view_options.map(status=>
                         <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
                 </DropdownButton>
+                <button className="btn btn-default" type="button" onClick={this.createViews}>Create views</button>
                 <Input type="text" ref="search_value" label="Search"/>
             </div>
         );

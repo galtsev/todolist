@@ -13,6 +13,11 @@ storage.state = {
     todos: []
 };
 
+storage.on('create_views', function(){
+    srv.create_views();
+    console.log('ok');
+});
+
 storage.on('initial_load', function() {
     srv.get_list({status: this.state.status, search_value:''}).then(function(data){
         this.state.todos = data;

@@ -1,4 +1,5 @@
 const pouchdb = require('pouchdb');
+window.PouchDB = pouchdb;
 const strftime = require('strftime');
 
 function Server(conn_str, opts) {

@@ -1,9 +1,7 @@
-const pouchdb = require('pouchdb');
-window.PouchDB = pouchdb;
 const strftime = require('strftime');
 
 function Server(conn_str, opts) {
-    this.backend = pouchdb(conn_str, opts);
+    this.backend = PouchDB(conn_str, opts);
 }
 
 function srv2local(todo) {

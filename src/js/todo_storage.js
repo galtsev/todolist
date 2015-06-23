@@ -80,6 +80,16 @@ storage.on('link', function(path){
     this.updated();
 });
 
+storage.on('sync', function(args){
+    srv.sync(args);
+    this.updated();
+});
+
+storage.on('get_sync_params', function(callback){
+    srv.backend.get('_local/settings_remote')
+        .then(callback);
+});
+
 var dispatcher = new Dispatcher();
 storage.mount(dispatcher);
 

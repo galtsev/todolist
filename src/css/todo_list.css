@@ -41,13 +41,6 @@
             background-color: #EEEEEE;
             border: solid 1px;
             z-index: 10;
-            display: none;
+            /*display: none;*/
             padding: 5px;
-        }
-        .g-modal {
-            margin auto;
-            background-color: #EEEEEE;
-            border: solid 1px;
-            z-index: 10;
-            max-width: 400px;
         }

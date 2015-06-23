@@ -1,4 +1,6 @@
-const StorageMixin = require('./storage').StorageMixin;
+const StorageMixin = require('./todo_storage').DispatcherMixin;
+const Settings = require('./settings').Settings;
+const Link = require('./link').Link;
 
 function f2(i) {
     return (i<10?'0':'')+i.toString();
@@ -60,15 +62,11 @@ var TodoItem = React.createClass({
 
 var Dialog1 = React.createClass({
     mixins: [StorageMixin],
-    hideMe: function() {
-        document.getElementById('d1').style.display="none";
-    },
     render: function() {
-        var status = this.storage().state.status;
         return (
             <div id="d1" className="g-modal-container">
                 <h3>Add new task</h3>
-                <AppendForm view_status={status} onClose={this.hideMe} />
+                <AppendForm view_status={this.props.opts} />
             </div>
         );
     }
@@ -80,10 +78,8 @@ var Toolbar = React.createClass({
         this.emit('view_status_changed', {status: status, search_value: this.refs.search_value.getValue().trim()});
     },
     showDialog: function(event) {
-        document.getElementById('d1').style.display='block';
-    },
-    createViews: function() {
-        this.emit('create_views');
+        //document.getElementById('d1').style.display='block';
+        this.emit('show_dialog', {dialogClass: Dialog1, opts:this.props.view_status});
     },
     render: function() {
         var view_options = ['all', 'backlog', 'in process', 'hold', 'closed'];
@@ -95,7 +91,6 @@ var Toolbar = React.createClass({
                     {view_options.map(status=>
                         <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
                 </DropdownButton>
-                <button className="btn btn-default" type="button" onClick={this.createViews}>Create views</button>
                 <Input type="text" ref="search_value" label="Search"/>
             </div>
         );
@@ -104,9 +99,6 @@ var Toolbar = React.createClass({
 
 var AppendForm = React.createClass({
     mixins: [StorageMixin],
-    storageUpdated: function(){
-        React.findDOMNode(this.refs.status).value = this.storage().state.status;
-    },
     handleSubmit: function() {
         var data = {
             status: this.refs.status.getDOMNode().value,
@@ -114,7 +106,10 @@ var AppendForm = React.createClass({
         };
         this.emit('item_append', data);
         React.findDOMNode(this.refs.description).value='';
-        this.props.onClose();
+        this.emit('close_dialog');
+    },
+    handleCancel: function() {
+        this.emit('close_dialog');
     },
     render: function() {
         return (
@@ -132,7 +127,7 @@ var AppendForm = React.createClass({
                 </div>
                 <div>
                     <button className="btn btn-default" onClick={this.handleSubmit}>Submit</button>
-                    <button className="btn btn-default" onClick={this.props.onClose}>Cancel</button>
+                    <button className="btn btn-default" onClick={this.handleCancel}>Cancel</button>
                 </div>
             </div>
         );
@@ -156,35 +151,53 @@ const TodoList = React.createClass({
     }
 });
 
+
 var TodoPage = React.createClass({
     mixins: [StorageMixin],
     getInitialState: function() {
         return {
             view_status: 'in process',
-            todos: []
+            todos: [],
+            dialog: null,
+            path: 'home'
         };
     },
     componentDidMount: function() {
         this.emit('initial_load');
         //storage.on('update', this.storageUpdated);
     },
-    storageUpdated: function() {
-        s = this.storage().state;
+    storageUpdated: function(storage) {
+        s = storage.state;
         new_state = {
             view_status: s.status,
-            todos: s.todos
+            todos: s.todos,
+            dialog: s.dialog,
+            path: s.path
         };
         this.setState(new_state);
     },
     render: function() {
-        return (
+        var dialog;
+        if (this.state.dialog) {
+            var D = this.state.dialog.dialogClass;
+            dialog = <D opts={this.state.dialog.opts} />;
+        } else {
+            dialog = <div />;
+        }
+        var page;
+        if (this.state.path=='home') {
+            page = (
             <div>
-                <Dialog1 />
+                {dialog}
+                <Link path="settings">Settings</Link>
                 <Toolbar view_status={this.state.view_status} />
-                {/*<AppendForm view_status={this.state.view_status} />*/}
                 <TodoList todos={this.state.todos} view_status={this.state.view_status} />
             </div>
-        );
+            );
+        } else {
+            page = <Settings />;
+        }
+        return page;
     }
 });
 

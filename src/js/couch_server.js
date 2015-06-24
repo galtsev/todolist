@@ -1,3 +1,4 @@
+const util = require('./util');
 const strftime = require('strftime');
 
 const conn_str = 'todo_local';
@@ -19,8 +20,6 @@ function findAll(regEx, s) {
     }
     return res;
 }
-
-const date_format = "%Y-%m-%d %H:%M:%S.%L";
 
 function echo(msg) {
     return function(value) {
@@ -60,7 +59,7 @@ Server.prototype = {
         var save = function(doc) {
             delete args.password;
             args._id = settings_key;
-            args.last_sync_date = strftime(date_format, new Date());
+            args.last_sync_date = strftime(util.date_format, new Date());
             if (doc) {
                 args._rev=doc._rev
             }
@@ -84,7 +83,7 @@ Server.prototype = {
             _id: todo.id,
             _rev: todo._rev,
             date_created: todo.date_created,
-            date_updated: strftime(date_format, new Date()),
+            date_updated: strftime(util.date_format, new Date()),
             tags: todo.tags,
             description: todo.description,
             status: status
@@ -111,7 +110,7 @@ Server.prototype = {
     },
     add_todo: function(form_data) {
         var now = new Date();
-        form_data.date_created = form_data.date_updated = strftime(date_format, now);
+        form_data.date_created = form_data.date_updated = strftime(util.date_format, now);
         form_data.tags = findAll(/#\w+(?:\.\w+)*/g, form_data.description);
         return this.backend.post(form_data)
             .then(function(data){return this.backend.get(data.id);}.bind(this))

@@ -27,35 +27,22 @@ function statusCaption(status) {
 
 var TodoItem = React.createClass({
     mixins: [StorageMixin],
-    handleDelete: function(event) {
-        this.emit('delete_item', this.props.task);
-    },
-    newStatusClick: function(event) {
-        this.newStatusSelect(this.nextStatus());
-    },
-    newStatusSelect: function(status) {
-        this.emit('update_item_status', {task: this.props.task, new_status: status});
-    },
-    nextStatus: function() {
-        return this.props.task.status=='in process'?'closed':'in process';
+    handleSelect: function(event) {
+        this.emit('item_selected', {id:this.props.task.id, checked:event.target.checked});
     },
     render: function() {
-        var otherStatuses = ['backlog','in process', 'hold', 'closed'].filter(status => status!=this.nextStatus() && status!=this.props.view_status);
         return (
             <div className="task">
-            <ButtonToolbar>
-                <SplitButton bsStyle="default" title={statusCaption(this.nextStatus())} onClick={this.newStatusClick} onSelect={this.newStatusSelect} >
-                {otherStatuses.map(status => <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
-                </SplitButton>
-                <Button bsStyle="default" onClick={this.handleDelete}>Delete</Button>
-            </ButtonToolbar>
-            <div className="description">{this.props.task.description}</div>
-            <div className="attrs">
-                <span className="float_left">{ fmt_date(this.props.task.date_updated) }</span>
-                <span className="float_right">{this.props.task.status }</span>
+                <div className="description">
+                    <input type="checkbox" onChange={this.handleSelect} />&nbsp;
+                    {this.props.task.description}
+                </div>
+                <div className="attrs">
+                    <span className="float_left">{ fmt_date(this.props.task.date_updated) }</span>
+                    <span className="float_right">{this.props.task.status }</span>
+                </div>
+                <div className="clear_both;"></div>
             </div>
-            <div className="clear_both;"></div>
-        </div>
         );
     }
 });
@@ -75,14 +62,24 @@ var Dialog1 = React.createClass({
 var Toolbar = React.createClass({
     mixins: [StorageMixin],
     newSelect: function(status) {
-        this.emit('view_status_changed', {status: status, search_value: this.refs.search_value.getValue().trim()});
+        this.emit('view_status_changed', {status: status, search_value: React.findDOMNode(this.refs.search_value).value.trim()});
     },
     showDialog: function(event) {
         //document.getElementById('d1').style.display='block';
         this.emit('show_dialog', {dialogClass: Dialog1, opts:this.props.view_status});
     },
+    deleteSelected: function() {
+        this.emit('delete_selected');
+    },
+    updateSelected: function(status) {
+        this.emit('update_selected', status);
+    },
+    updateClick: function() {
+        this.emit('update_selected', this.props.view_status==='in process'?'closed':'in process');
+    },
     render: function() {
         var view_options = ['all', 'backlog', 'in process', 'hold', 'closed'];
+        var next_status = this.props.view_status=='in process'?'closed':'in process';
         return (
             <div className="toolbox">
                 {/*<button className="btn btn-default" type="button" data-toggle="collapse" data-target="#addnew2">New</button>*/}
@@ -91,7 +88,13 @@ var Toolbar = React.createClass({
                     {view_options.map(status=>
                         <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
                 </DropdownButton>
-                <Input type="text" ref="search_value" label="Search"/>
+                <span> | </span>
+                <SplitButton title={statusCaption(next_status)} onClick={this.updateClick} onSelect={this.updateSelected}>
+                    {view_options.filter(opt=>opt!=='all').map(status=>
+                        <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
+                </SplitButton>
+                <button className="btn btn-default" type="button" onClick={this.deleteSelected}>Delete selected</button>
+                <input type="text" ref="search_value" label="Search"/>
             </div>
         );
     }

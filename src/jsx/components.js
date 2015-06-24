@@ -80,6 +80,7 @@ var Toolbar = React.createClass({
     render: function() {
         var view_options = ['all', 'backlog', 'in process', 'hold', 'closed'];
         var next_status = this.props.view_status=='in process'?'closed':'in process';
+        var selection_empty = Object.keys(this.props.selection).length===0;
         return (
             <div className="toolbox">
                 {/*<button className="btn btn-default" type="button" data-toggle="collapse" data-target="#addnew2">New</button>*/}
@@ -89,11 +90,11 @@ var Toolbar = React.createClass({
                         <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
                 </DropdownButton>
                 <span> | </span>
-                <SplitButton title={statusCaption(next_status)} onClick={this.updateClick} onSelect={this.updateSelected}>
+                <SplitButton title={statusCaption(next_status)} disabled={selection_empty} onClick={this.updateClick} onSelect={this.updateSelected}>
                     {view_options.filter(opt=>opt!=='all').map(status=>
                         <MenuItem eventKey={status} key={status}>{statusCaption(status)}</MenuItem>)}
                 </SplitButton>
-                <button className="btn btn-default" type="button" onClick={this.deleteSelected}>Delete selected</button>
+                <button className="btn btn-default" type="button" disabled={selection_empty} onClick={this.deleteSelected}>Delete selected</button>
                 <input type="text" ref="search_value" label="Search"/>
             </div>
         );
@@ -159,10 +160,11 @@ var TodoPage = React.createClass({
     mixins: [StorageMixin],
     getInitialState: function() {
         return {
-            view_status: 'in process',
+            status: 'in process',
             todos: [],
             dialog: null,
-            path: 'home'
+            path: 'home',
+            select_list:{}
         };
     },
     componentDidMount: function() {
@@ -170,14 +172,7 @@ var TodoPage = React.createClass({
         //storage.on('update', this.storageUpdated);
     },
     storageUpdated: function(storage) {
-        s = storage.state;
-        new_state = {
-            view_status: s.status,
-            todos: s.todos,
-            dialog: s.dialog,
-            path: s.path
-        };
-        this.setState(new_state);
+        this.setState(_.assign({},storage.state));
     },
     render: function() {
         var dialog;
@@ -193,8 +188,8 @@ var TodoPage = React.createClass({
             <div>
                 {dialog}
                 <Link path="settings">Settings</Link>
-                <Toolbar view_status={this.state.view_status} />
-                <TodoList todos={this.state.todos} view_status={this.state.view_status} />
+                <Toolbar view_status={this.state.status} selection={this.state.select_list} />
+                <TodoList todos={this.state.todos} view_status={this.state.status} />
             </div>
             );
         } else {

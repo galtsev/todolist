@@ -22,7 +22,6 @@ storage.state = {
 
 storage.on('create_views', function(){
     srv.create_views();
-    console.log('ok');
 });
 
 storage.on('initial_load', function() {
@@ -96,14 +95,12 @@ storage.on('get_sync_params', function(callback){
 
 storage.on('item_selected', function(args){
     var select_list=this.state.select_list;
-    if (typeof select_list!=='object') {
-        select_list = this.state.select_list = {};
-    }
     if (args.checked) {
         select_list[args.id] = 1;
     } else if (args.id in select_list) {
         delete select_list[args.id]
     }
+    this.updated();
 });
 
 storage.on('delete_selected', function(){

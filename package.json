@@ -9,6 +9,7 @@
   "dependencies": {
     "bootstrap": "^3.3.4",
     "jquery": "^2.1.4",
+    "lodash": "^3.9.3",
     "pouchdb": "^3.6.0",
     "react": "^0.13.3",
     "react-bootstrap": "^0.21.2",

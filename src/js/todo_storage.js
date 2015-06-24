@@ -5,6 +5,8 @@
 var srv = require('./couch_server').srv;
 var Storage = require('./storage').Storage;
 var Dispatcher = require('./dispatcher').Dispatcher;
+const util = require('./util');
+const strftime = require('strftime');
 
 //dispatcher = new EventEmitter();
 
@@ -14,12 +16,12 @@ storage = new Storage();
 storage.state = {
     status: 'in process',
     todos: [],
-    path: 'home'
+    path: 'home',
+    select_list: {}
 };
 
 storage.on('create_views', function(){
     srv.create_views();
-    console.log('ok');
 });
 
 storage.on('initial_load', function() {
@@ -44,6 +46,7 @@ storage.on('view_status_changed', function(options){
     srv.get_list(options).then(function(data){
         this.state.todos = data;
         this.state.status = options.status;
+        this.select_list = {};
         this.updated();
     }.bind(this));
 });
@@ -88,6 +91,48 @@ storage.on('sync', function(args){
 storage.on('get_sync_params', function(callback){
     srv.backend.get('_local/settings_remote')
         .then(callback);
+});
+
+storage.on('item_selected', function(args){
+    var select_list=this.state.select_list;
+    if (args.checked) {
+        select_list[args.id] = 1;
+    } else if (args.id in select_list) {
+        delete select_list[args.id]
+    }
+    this.updated();
+});
+
+storage.on('delete_selected', function(){
+    var selected = this.state.select_list || {};
+    var items_to_delete = this.state.todos.filter(todo=>todo.id in selected);
+    this.state.todos = this.state.todos.filter(todo=>!(todo.id in selected));
+    this.state.select_list={};
+    items_to_delete.forEach(todo=>todo._deleted=true);
+    srv.backend.bulkDocs(items_to_delete)
+        .then(()=>this.updated());
+});
+
+function setOf(arr) {
+    var res = {};
+    arr.forEach(key=>res[key]=1);
+    return res;
+}
+
+storage.on('update_selected', function(status) {
+    var selected = this.state.select_list || {};
+    var items_to_update = this.state.todos.filter(todo=>todo.id in selected && todo.status!==status);
+    var date_updated = strftime(util.date_format, new Date());
+    items_to_update.forEach(todo=>{todo.status=status; todo.date_updated=date_updated});
+    this.state.todos = this.state.todos.filter(todo=>this.state.status==='all' || todo.status===this.state.status);
+    // after update some items will be removed from view
+    // remove them from select list as well
+    var new_ids = setOf(this.state.todos.map(v=>v.id));
+    this.state.select_list = setOf(Object.keys(this.state.select_list).filter(key=>key in new_ids));
+    srv.backend.bulkDocs(items_to_update)
+        .then(()=>this.updated());
+
+
 });
 
 var dispatcher = new Dispatcher();

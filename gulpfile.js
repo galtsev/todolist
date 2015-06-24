@@ -7,6 +7,7 @@ var merge = require('merge-stream');
 
 gulp.task('copy', function() {
     var bundle = gulp.src('./src/js/*.js')
+        .pipe(jsx({harmony:true}))
         .pipe(gulp.dest('./build/js'));
     var index = gulp.src('./src/html/index.html')
         .pipe(gulp.dest('./dist'));

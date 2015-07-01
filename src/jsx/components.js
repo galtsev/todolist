@@ -1,6 +1,7 @@
 const StorageMixin = require('./todo_storage').DispatcherMixin;
 const Settings = require('./settings').Settings;
 const Link = require('./link').Link;
+const util = require('./util');
 
 function f2(i) {
     return (i<10?'0':'')+i.toString();
@@ -31,15 +32,17 @@ var TodoItem = React.createClass({
         this.emit('item_selected', {id:this.props.task.id, checked:event.target.checked});
     },
     render: function() {
+        var task = this.props.task;
+        var content = {__html: util.markup_map['markup' in task?task.markup:'text'](task.description)};
         return (
             <div className="task">
                 <div className="description">
                     <input type="checkbox" onChange={this.handleSelect} />&nbsp;
-                    {this.props.task.description}
+                    <span dangerouslySetInnerHTML={content} />
                 </div>
                 <div className="attrs">
-                    <span className="float_left">{ fmt_date(this.props.task.date_updated) }</span>
-                    <span className="float_right">{this.props.task.status }</span>
+                    <span className="float_left">{ fmt_date(task.date_updated) }</span>
+                    <span className="float_right">{task.status }</span>
                 </div>
                 <div className="clear_both;"></div>
             </div>

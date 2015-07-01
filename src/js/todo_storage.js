@@ -84,8 +84,9 @@ storage.on('link', function(path){
 });
 
 storage.on('sync', function(args){
-    srv.sync(args);
-    this.updated();
+    srv.sync(args)
+        .then(this.updated.bind(this))
+        .catch(function(err){console.error(err)});
 });
 
 storage.on('get_sync_params', function(callback){

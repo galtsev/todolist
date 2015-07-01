@@ -4,7 +4,7 @@ const strftime = require('strftime');
 const conn_str = 'todo_local';
 
 function Server(conn_str, opts) {
-    this.backend = PouchDB(conn_str, opts);
+    this.backend = new PouchDB(conn_str, opts);
 }
 
 function srv2local(todo) {
@@ -55,27 +55,28 @@ Server.prototype = {
     },
     sync: function(args){
         var backend = this.backend;
-        const settings_key = '_local/settings_remote';
-        var save = function(doc) {
-            delete args.password;
-            args._id = settings_key;
-            args.last_sync_date = strftime(util.date_format, new Date());
-            if (doc) {
-                args._rev=doc._rev
-            }
-            backend.put(args);
-        };
-        var onComplete = function() {
-            backend.get(settings_key)
-                .then(save)
-                .catch(function(err){
-                    if (err.status==404) {save(null);}
-                })
+        var rewrite = function(doc) {
+            return backend.get(doc._id)
+                .then(function(old_doc){
+                    doc._rev = old_doc._rev;
+                    return backend.put(doc);
+                }).catch(function(err){
+                    if (err.status===404) return backend.put(doc);
+                    else  throw err;
+                });
         };
         var remote = new PouchDB(args.url, {auth: {username:args.username,password:args.password}});
-        this.backend.sync(remote)
-            .on('complete', onComplete)
-            .on('error', error('error handler called'));
+        var result = backend.replicate.to(remote);
+        result.then(function(info){
+            console.log(info);
+            rewrite({
+                _id: '_local/settings_remote',
+                url: args.url,
+                username: args.username,
+                last_sync_date: strftime(util.date_format, new Date())
+            }).catch(err=>console.error(err));
+        });
+        return result;
     },
     set_status: function(todo, status) {
         //return this.post_promise('set-status', {id: id, status: status});
